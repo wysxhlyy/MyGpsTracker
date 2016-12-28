@@ -1,6 +1,9 @@
 package com.example.mario.mygpstracker;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.location.Location;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +15,18 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener{
+public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener,OnMapReadyCallback{
 
     private GoogleApiClient mGoogleApiClient;
     private Location nowLocation;
@@ -25,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Button startLoc;
     private String updateTime;
     private LocationRequest locationReq;
+
+    private MapFragment map;
 
 
     @Override
@@ -44,9 +55,33 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         trackOrNot=true;
 
+       /* map=MapFragment.newInstance();
+        FragmentTransaction fragmentTransaction=getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.map,map);
+        fragmentTransaction.commit();*/
+
+        MapFragment mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);          //Add the google map.
+
+
 
 
     }
+
+    /*
+        Used to set the google map.
+     */
+    public void onMapReady(GoogleMap map){
+        //map.addMarker(new MarkerOptions().position(new LatLng(nowLocation.getLongitude(),nowLocation.getLatitude())).title("Your position"));
+        map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        try{
+            map.setMyLocationEnabled(true);     //Enable to find the current location
+        }catch (SecurityException e){
+            //ask for permission
+        }
+
+    }
+
 
 
     protected void  onStart(){
@@ -98,14 +133,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void updateLocation(){
         try{
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,locationReq, (LocationListener) this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,locationReq, this);
         }catch (SecurityException e){
             Toast.makeText(MainActivity.this,"Failed to update location",Toast.LENGTH_SHORT).show();
         }
     }
 
     public void stopUpdateLocation(){
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (LocationListener) this);
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
     }
 
     public void onLocationChanged(Location location){
@@ -116,10 +151,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.d("g53mdp",nowLocation.getLongitude()+"");
         Log.d("g53mdp",updateTime);
     }
-
-
-
-
 
 
     public void onConnectionSuspended(int con){
