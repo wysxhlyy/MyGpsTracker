@@ -1,26 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_main"
+    android:id="@+id/activity_my_tracker"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.mario.mygpstracker.MainActivity"
-    android:orientation="vertical">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Activity Tracker"
-        android:textSize="25dp"
-        android:fontFamily="monospace"
-        android:layout_gravity="center"
-        android:textColor="@color/black"
-        />
+    tools:context="com.example.mario.mygpstracker.MyTracker"
+    android:orientation="vertical"
+    >
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -40,11 +30,9 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:textSize="13sp"
-        android:textAlignment="center"
+        android:text="Today's Information"
         android:id="@+id/process"
         android:padding="10dp"
-        android:textColor="@color/black"
         />
 
     <TextView
@@ -65,19 +53,26 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start Track"
-            android:id="@+id/start"
+            android:text="pause"
+            android:id="@+id/pause"
             />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="History"
-            android:id="@+id/history"
+            android:text="save"
+            android:id="@+id/save"
             android:layout_marginLeft="10dp"
             />
-    </LinearLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="cancel"
+            android:id="@+id/cancel"
+            android:layout_marginLeft="10dp"
+            />
 
+    </LinearLayout>
 
 
 </LinearLayout>
