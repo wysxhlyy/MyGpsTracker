@@ -26,6 +26,13 @@
 
         <activity android:name=".MyTracker" />
         <activity android:name=".TrackHistory"></activity>
+
+        <provider
+            android:authorities="com.example.mario.mygpstracker.MyContentProvider"
+            android:name="com.example.mario.mygpstracker.MyContentProvider"
+            android:multiprocess="true"
+            android:exported="true">
+        </provider>
     </application>
 
 </manifest>

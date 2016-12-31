@@ -2,6 +2,7 @@ package com.example.mario.mygpstracker;
 
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -31,11 +32,15 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private TextView process;
     private String todayInfo=" ";
 
+    private Cursor cursor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getTodayInfo();
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -67,6 +72,18 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 startActivity(intent);
             }
         });
+
+    }
+
+    //Get the information of today.
+    private void getTodayInfo() {
+        String[] projection=new String[]{
+                MyProviderContract._ID,
+                MyProviderContract.LONGITUDE,
+                MyProviderContract.LATITUDE
+        };
+
+        cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
 
     }
 
