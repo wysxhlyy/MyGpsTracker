@@ -31,13 +31,17 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     private MapFragment mapFragment;
 
     private Button pause;
-    private Bundle save;
+    private Button save;
     private Button cancel;
+
+    private String[][] savedLoc;
+    private int savedCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_tracker);
+        updateValue(savedInstanceState);
         initialize();
 
 
@@ -57,13 +61,33 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
         cancel.setOnClickListener(this);
         pause.setOnClickListener(this);
+        save.setOnClickListener(this);
 
+    }
+
+    private void updateValue(Bundle bundle){
+        if(bundle!=null){
+            if(bundle.keySet().contains("requstLocationUpdate")){
+                trackOrNot=bundle.getBoolean("requestLocationUpdate");
+            }
+
+            if(bundle.keySet().contains("nowLocation")){
+                nowLocation=bundle.getParcelable("nowLocation");
+            }
+
+            if(bundle.keySet().contains("lastUpdateTime")){
+                updateTime=bundle.getString("lastUpdateTime");
+            }
+        }
     }
 
     public void initialize(){
         cancel=(Button)findViewById(R.id.cancel);
         pause=(Button)findViewById(R.id.pause);
+        save=(Button)findViewById(R.id.save);
         mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
+        savedLoc=new String[2000][3];
+        savedCount=0;
 
     }
 
@@ -84,6 +108,10 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                     pause.setText("pause");
                 }
                 break;
+            case R.id.save:
+                for(int i=0;i<savedCount;i++){
+                    Log.d("g53mdp",savedLoc[i][0]+","+savedLoc[i][1]+","+savedLoc[i][2]);
+                }
 
         }
     }
@@ -111,6 +139,11 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         nowLocation=location;
         SimpleDateFormat sdf=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
         updateTime=sdf.format(new Date());
+        savedLoc[savedCount][0]=nowLocation.getLongitude()+"";
+        savedLoc[savedCount][1]=nowLocation.getLatitude()+"";
+        savedLoc[savedCount][2]=updateTime;
+        savedCount++;
+
         Log.d("g53mdp",nowLocation.getLatitude()+"");
         Log.d("g53mdp",nowLocation.getLongitude()+"");
         Log.d("g53mdp",updateTime);
@@ -170,6 +203,13 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         if(trackOrNot){
             updateLocation();
         }
+    }
+
+    public void onSaveInstanceState(Bundle savedInstanceState){
+        savedInstanceState.putBoolean("requestLocationUpdate",trackOrNot);
+        savedInstanceState.putParcelable("nowLocation",nowLocation);
+        savedInstanceState.putString("lastUpdateTime",updateTime);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
 
