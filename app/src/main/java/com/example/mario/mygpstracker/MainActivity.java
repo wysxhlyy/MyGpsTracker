@@ -3,6 +3,7 @@ package com.example.mario.mygpstracker;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.icu.text.SimpleDateFormat;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -18,6 +19,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+
+import java.text.ParseException;
+import java.util.Date;
 
 import static java.sql.Types.DOUBLE;
 
@@ -73,12 +77,16 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 startActivity(intent);
             }
         });
-        getTodayInfo();
+        try {
+            getTodayInfo();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
     }
 
     //Get the information of today.
-    private void getTodayInfo() {
+    private void getTodayInfo() throws ParseException {
         todayLoc=new String[2000][3];
         todayDistance=0;
         String[] projection=new String[]{
@@ -96,21 +104,33 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             Log.d("g53mdp",count+":"+cursor.getString(1)+","+cursor.getString(2)+","+cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE)));
             todayLoc[count][0]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
             todayLoc[count][1]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
+            todayLoc[count][2]=cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
 
             count++;
         }
 
-        Log.d("g53mdp","cursor count"+cursor.getCount());
+        Log.d("g53mdp","cursor count"+cursor.getCount()+"count:"+count);
 
         for(int i=0;i<count-1;i++){
             double long1=Double.parseDouble(todayLoc[i][0]);
             double lat1=Double.parseDouble(todayLoc[i][1]);
             double long2=Double.parseDouble(todayLoc[i+1][0]);
             double lat2=Double.parseDouble(todayLoc[i+1][1]);
+            SimpleDateFormat format=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+
+
+            Date time1=format.parse(todayLoc[i][2]);
+            Date time2 = format.parse(todayLoc[i + 1][2]);
+
             float[] distBetweenTwoNodes=new float[1];
             Location.distanceBetween(lat1,long1,lat2,long2,distBetweenTwoNodes);
-            Log.d("g53mdp",i+":"+distBetweenTwoNodes[0]);
-            if(distBetweenTwoNodes[0]<300){
+
+            long timediff=time2.getTime()-time1.getTime();
+            timediff=timediff/1000;
+            Log.d("g53mdp",i+":"+distBetweenTwoNodes[0]+","+"timediff:"+timediff);
+
+
+            if(Math.abs(timediff)<=10){                 //If the record time less than 10 seconds,regarded as the same track.
                 todayDistance+=distBetweenTwoNodes[0];
             }
         }
