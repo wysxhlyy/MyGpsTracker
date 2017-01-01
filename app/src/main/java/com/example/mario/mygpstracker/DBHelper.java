@@ -21,7 +21,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         Log.d("g53mdp","onCreate DB");
 
-        sqLiteDatabase.execSQL("CREATE TABLE locationRecord(" +
+        sqLiteDatabase.execSQL("CREATE TABLE locationRecords(" +
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "longitude VARCHAR(128) NOT NULL," +
                 "latitude VARCHAR(128) NOT NULL," +

@@ -1,7 +1,11 @@
 package com.example.mario.mygpstracker;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.location.Location;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,32 +22,48 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener,OnMapReadyCallback,View.OnClickListener {
+public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener {
 
     private GoogleApiClient mGoogleApiClient;
-    private Location nowLocation;
-    private boolean trackOrNot;
-    private String updateTime;
-    private LocationRequest locationReq;
     private MapFragment mapFragment;
+
 
     private Button pause;
     private Button save;
     private Button cancel;
 
-    private String[][] savedLoc;
-    private int savedCount;
+    private MyTrackerService.MyBinder trackService;
+    private Intent intent;
+
+
+    private ServiceConnection serviceConnection=new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d("g54mdp", "MyTracker onServiceConnected");
+            trackService=(MyTrackerService.MyBinder) iBinder;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            Log.d("g54mdp", "MyTracker onServiceDisconnected");
+            trackService=null;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_tracker);
-        updateValue(savedInstanceState);
         initialize();
 
+
+        intent=new Intent(MyTracker.this,MyTrackerService.class);
+        startService(intent);
+        this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -53,32 +73,13 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                     .build();
         }
 
-        createLocReq();
-
-        trackOrNot=true;
-
         mapFragment.getMapAsync(this);          //Add the google map.
 
         cancel.setOnClickListener(this);
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
 
-    }
 
-    private void updateValue(Bundle bundle){
-        if(bundle!=null){
-            if(bundle.keySet().contains("requstLocationUpdate")){
-                trackOrNot=bundle.getBoolean("requestLocationUpdate");
-            }
-
-            if(bundle.keySet().contains("nowLocation")){
-                nowLocation=bundle.getParcelable("nowLocation");
-            }
-
-            if(bundle.keySet().contains("lastUpdateTime")){
-                updateTime=bundle.getString("lastUpdateTime");
-            }
-        }
     }
 
     public void initialize(){
@@ -86,8 +87,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         pause=(Button)findViewById(R.id.pause);
         save=(Button)findViewById(R.id.save);
         mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
-        savedLoc=new String[2000][3];
-        savedCount=0;
+
 
     }
 
@@ -100,21 +100,22 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                 break;
             case R.id.pause:
                 if(pause.getText().equals("pause")){
-                    onPause();
+                    trackService.onPause();
                     pause.setText("resume");
+                    save.setEnabled(true);
                 }else if(pause.getText().equals("resume")){
-                    onStart();
-                    onResume();
+                    trackService.onResume();
                     pause.setText("pause");
+                    save.setEnabled(false);
                 }
                 break;
             case R.id.save:
-                for(int i=0;i<savedCount;i++){
-                    Log.d("g53mdp",savedLoc[i][0]+","+savedLoc[i][1]+","+savedLoc[i][2]);
-                }
-
+                trackService.saveLocation();
+                break;
         }
     }
+
+
 
 
     public void onMapReady(GoogleMap map){
@@ -128,52 +129,45 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     }
 
-    protected void createLocReq(){
-        locationReq=new LocationRequest();
-        locationReq.setInterval(5000);
-        locationReq.setFastestInterval(1000);
-        locationReq.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    public void onConnected(Bundle con){
+
     }
+
+    public void onConnectionSuspended(int con){
+
+    }
+
+    public void onConnectionFailed(ConnectionResult cr){
+    }
+
+
+    protected void onDestroy(){
+        Log.d("g54mdp","Activity Destroyed");
+        if(serviceConnection!=null){
+            unbindService(serviceConnection);
+            serviceConnection=null;
+        }
+        super.onDestroy();
+
+    }
+
+/*
+
+
 
     public void onLocationChanged(Location location){   //update the location
         nowLocation=location;
         SimpleDateFormat sdf=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
         updateTime=sdf.format(new Date());
-        savedLoc[savedCount][0]=nowLocation.getLongitude()+"";
-        savedLoc[savedCount][1]=nowLocation.getLatitude()+"";
-        savedLoc[savedCount][2]=updateTime;
-        savedCount++;
-
+        savedLoc[saveCount][0]=nowLocation.getLongitude()+"";
+        savedLoc[saveCount][1]=nowLocation.getLatitude()+"";
+        savedLoc[saveCount][2]=updateTime;
+        saveCount++;
         Log.d("g53mdp",nowLocation.getLatitude()+"");
         Log.d("g53mdp",nowLocation.getLongitude()+"");
         Log.d("g53mdp",updateTime);
     }
 
-    protected void  onStart(){
-        mGoogleApiClient.connect();
-        super.onStart();
-        trackOrNot=true;
-    }
-
-    protected void onStop(){
-        mGoogleApiClient.disconnect();
-        super.onStop();
-        trackOrNot=false;
-    }
-
-    protected void onPause(){
-        super.onPause();
-        stopUpdateLocation();
-        trackOrNot=false;
-    }
-
-    public void onResume(){
-        super.onResume();
-        if(mGoogleApiClient.isConnected()){
-            updateLocation();
-            trackOrNot=true;
-        }
-    }
 
     public void updateLocation(){
         try{
@@ -189,36 +183,9 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     }
 
 
-    public void onConnected(Bundle con){
-        try{
-            nowLocation=LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if(nowLocation!=null){
-                Log.d("g53mdp",nowLocation.getLatitude()+"");
-                Log.d("g53mdp",nowLocation.getLongitude()+"");
-            }
-        }catch (SecurityException e){
-            Toast.makeText(MyTracker.this,"Failed to get location",Toast.LENGTH_SHORT).show();
-        }
-
-        if(trackOrNot){
-            updateLocation();
-        }
-    }
-
-    public void onSaveInstanceState(Bundle savedInstanceState){
-        savedInstanceState.putBoolean("requestLocationUpdate",trackOrNot);
-        savedInstanceState.putParcelable("nowLocation",nowLocation);
-        savedInstanceState.putString("lastUpdateTime",updateTime);
-        super.onSaveInstanceState(savedInstanceState);
-    }
 
 
 
 
-    public void onConnectionSuspended(int con){
-
-    }
-
-    public void onConnectionFailed(ConnectionResult cr){
-    }
+ */
 }

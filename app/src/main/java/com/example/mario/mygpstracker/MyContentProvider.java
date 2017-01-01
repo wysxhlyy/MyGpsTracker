@@ -1,6 +1,7 @@
 package com.example.mario.mygpstracker;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -21,13 +22,13 @@ public class MyContentProvider extends ContentProvider {
 
     static final int LOCATIONS=1;
     static final int LOCATION_ID=2;
-    static final String TABLE_NAME="locationRecord";
-    static final String DB_NAME="locationDB";
+    static final String TABLE_NAME="locationRecords";
+    static final String DB_NAME="locationDB2";
 
     static {
         uriMatcher=new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecord",LOCATIONS);
-        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecord/#",LOCATION_ID);
+        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords",LOCATIONS);
+        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords/#",LOCATION_ID);
     }
 
     @Override
@@ -56,6 +57,15 @@ public class MyContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
+        SQLiteDatabase db=dbHelper.getWritableDatabase();
+        long id=db.insert(TABLE_NAME,null,contentValues);
+        db.close();
+        if(id>0){
+            Uri nu= ContentUris.withAppendedId(uri,id);
+            Log.d("g53mdp",nu.toString());
+            getContext().getContentResolver().notifyChange(nu,null);
+            return nu;
+        }
         return null;
     }
 

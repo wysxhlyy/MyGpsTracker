@@ -38,13 +38,21 @@
         />
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:textSize="13sp"
-        android:textAlignment="center"
-        android:id="@+id/process"
-        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="25dp"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center"
+        android:text="Recorded Move Distance Today(Meters)"
         android:textColor="@color/black"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:textAlignment="center"
+        android:textSize="35sp"
+        android:id="@+id/process"
+        android:textColor="@color/red"
         />
 
     <TextView

@@ -25,14 +25,18 @@
             android:value="AIzaSyCgkgD7_t16K70K-ozFq6uHPAz30TNhTJk" />
 
         <activity android:name=".MyTracker" />
-        <activity android:name=".TrackHistory"></activity>
+        <activity android:name=".TrackHistory" />
 
         <provider
+            android:name=".MyContentProvider"
             android:authorities="com.example.mario.mygpstracker.MyContentProvider"
-            android:name="com.example.mario.mygpstracker.MyContentProvider"
-            android:multiprocess="true"
-            android:exported="true">
-        </provider>
+            android:exported="true"
+            android:multiprocess="true"></provider>
+
+        <service
+            android:name=".MyTrackerService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

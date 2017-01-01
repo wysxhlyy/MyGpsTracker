@@ -19,6 +19,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 
+import static java.sql.Types.DOUBLE;
 
 
 public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback{
@@ -33,14 +34,14 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private String todayInfo=" ";
 
     private Cursor cursor;
+    private String[][] todayLoc;
+    private float todayDistance;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        getTodayInfo();
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -72,19 +73,49 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 startActivity(intent);
             }
         });
+        getTodayInfo();
 
     }
 
     //Get the information of today.
     private void getTodayInfo() {
+        todayLoc=new String[2000][3];
+        todayDistance=0;
         String[] projection=new String[]{
                 MyProviderContract._ID,
                 MyProviderContract.LONGITUDE,
-                MyProviderContract.LATITUDE
+                MyProviderContract.LATITUDE,
+                MyProviderContract.DATE
         };
+
+        int count=0;
 
         cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
 
+        while (cursor.moveToNext()){
+            Log.d("g53mdp",count+":"+cursor.getString(1)+","+cursor.getString(2)+","+cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE)));
+            todayLoc[count][0]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
+            todayLoc[count][1]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
+
+            count++;
+        }
+
+        Log.d("g53mdp","cursor count"+cursor.getCount());
+
+        for(int i=0;i<count-1;i++){
+            double long1=Double.parseDouble(todayLoc[i][0]);
+            double lat1=Double.parseDouble(todayLoc[i][1]);
+            double long2=Double.parseDouble(todayLoc[i+1][0]);
+            double lat2=Double.parseDouble(todayLoc[i+1][1]);
+            float[] distBetweenTwoNodes=new float[1];
+            Location.distanceBetween(lat1,long1,lat2,long2,distBetweenTwoNodes);
+            Log.d("g53mdp",i+":"+distBetweenTwoNodes[0]);
+            if(distBetweenTwoNodes[0]<300){
+                todayDistance+=distBetweenTwoNodes[0];
+            }
+        }
+
+        process.setText((int)todayDistance+"");
     }
 
     /*
@@ -119,8 +150,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             if(nowLocation!=null){
                 Log.d("g53mdp",nowLocation.getLatitude()+"");
                 Log.d("g53mdp",nowLocation.getLongitude()+"");
-                todayInfo+="Your Current Position:\n longitude "+nowLocation.getLongitude()+", latitude "+nowLocation.getLatitude();
-                process.setText(todayInfo);
+                //todayInfo+="Your Current Position:\n longitude "+nowLocation.getLongitude()+", latitude "+nowLocation.getLatitude();
+                //process.setText(todayInfo);
 
             }
         }catch (SecurityException e){
