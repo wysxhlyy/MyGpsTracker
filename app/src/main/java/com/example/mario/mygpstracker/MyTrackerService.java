@@ -1,14 +1,19 @@
 package com.example.mario.mygpstracker;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -57,6 +62,23 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         }
         createLocReq();
         onStart();
+        notification();
+    }
+
+    public void notification(){
+        PendingIntent pi=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),0);
+        Resources r=getResources();
+        Notification notification=new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark_disabled)
+                .setContentTitle("Activity Tracker")
+                .setContentTitle("Tracking...")
+                .setContentIntent(pi)
+                .setAutoCancel(false)
+                .setDefaults(Notification.DEFAULT_SOUND)
+                .build();
+
+        NotificationManager nManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        nManager.notify(0,notification);
     }
 
 

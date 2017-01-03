@@ -2,15 +2,20 @@ package com.example.mario.mygpstracker;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -22,9 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 
-import java.lang.reflect.Array;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
 
 public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener {
 
@@ -35,9 +38,14 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     private Button pause;
     private Button save;
     private Button cancel;
+    private TextView process;
 
     private MyTrackerService.MyBinder trackService;
     private Intent intent;
+    private int countDownInt=4;
+    private Handler h;
+
+    private boolean tracking;
 
 
     private ServiceConnection serviceConnection=new ServiceConnection() {
@@ -60,10 +68,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         setContentView(R.layout.activity_my_tracker);
         initialize();
 
-
-        intent=new Intent(MyTracker.this,MyTrackerService.class);
-        startService(intent);
-        this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
+        countDown();
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -79,23 +84,63 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
 
-
     }
 
     public void initialize(){
         cancel=(Button)findViewById(R.id.cancel);
         pause=(Button)findViewById(R.id.pause);
         save=(Button)findViewById(R.id.save);
+        process=(TextView)findViewById(R.id.process);
         mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
+
 
 
     }
 
+    public void countDown(){
+        h=new Handler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        countDownInt--;
+                        if(countDownInt>0){
+                            process.setText(countDownInt+"");
+                            countDown();
+                        }else if(countDownInt==0){
+                            process.setText("Start!");
+                            countDown();
+                        }else {
+                            process.setText("Tracking");
+                            intent=new Intent(MyTracker.this,MyTrackerService.class);
+                            startService(intent);
+                            MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
+                            tracking=true;
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+
+
     public void onClick(View view){
         switch (view.getId()){
             case R.id.cancel:
-                Intent intent=new Intent(MyTracker.this,MainActivity.class);
-                startActivity(intent);
+                if (!tracking){
+                    Intent intent=new Intent(MyTracker.this,MainActivity.class);
+                    startActivity(intent);
+                }else {
+                    backWarn();
+                }
+
                 //stop the track
                 break;
             case R.id.pause:
@@ -103,19 +148,48 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                     trackService.onPause();
                     pause.setText("resume");
                     save.setEnabled(true);
+                    process.setText("Paused");
+                    tracking=false;
                 }else if(pause.getText().equals("resume")){
                     trackService.onResume();
                     pause.setText("pause");
                     save.setEnabled(false);
+                    process.setText("Tracking");
+                    tracking=true;
                 }
                 break;
             case R.id.save:
                 trackService.saveLocation();
+                save.setEnabled(false);
                 break;
         }
     }
 
 
+    public void backWarn(){
+        AlertDialog.Builder builder=new AlertDialog.Builder(MyTracker.this);
+        builder.setTitle("Back");
+        builder.setMessage("Please stop tracking before return to the main page.");
+
+        builder.setNegativeButton("Keep Tracking", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Toast.makeText(MyTracker.this,"Still Tracking",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                trackService.onStop();
+                Intent intent=new Intent(MyTracker.this,MainActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
 
 
     public void onMapReady(GoogleMap map){

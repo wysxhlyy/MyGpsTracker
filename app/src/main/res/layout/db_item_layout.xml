@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="latitude"
+        android:textSize="15dp"
+        android:id="@+id/value1"
+        android:layout_weight="0.3"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="longitude"
+        android:textAlignment="viewEnd"
+        android:textSize="15dp"
+        android:id="@+id/value2"
+        android:layout_weight="0.3" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date"
+        android:textSize="15dp"
+        android:textAlignment="viewEnd"
+        android:id="@+id/value3"
+        android:layout_weight="0.4" />
+
+
+</LinearLayout>

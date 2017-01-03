@@ -138,6 +138,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         process.setText((int)todayDistance+"");
     }
 
+
+
     /*
         Used to set the google map.
      */
