@@ -4,11 +4,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.location.Location;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,8 +19,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -29,7 +26,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 
 
 
-public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener {
+public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener,BatteryReceiver.BroadcastData {
 
     private GoogleApiClient mGoogleApiClient;
     private MapFragment mapFragment;
@@ -39,6 +36,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     private Button save;
     private Button cancel;
     private TextView process;
+    private TextView battery;
 
     private MyTrackerService.MyBinder trackService;
     private Intent intent;
@@ -84,6 +82,13 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
 
+
+        BatteryReceiver br=new BatteryReceiver();
+        IntentFilter intentFilter=new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(br,intentFilter);
+        br.setBroadcastData(this);
+
+
     }
 
     public void initialize(){
@@ -92,8 +97,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         save=(Button)findViewById(R.id.save);
         process=(TextView)findViewById(R.id.process);
         mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
-
-
+        battery=(TextView)findViewById(R.id.battery);
 
     }
 
@@ -123,6 +127,10 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                             startService(intent);
                             MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
                             tracking=true;
+                            pause.setVisibility(View.VISIBLE);
+                            save.setVisibility(View.VISIBLE);
+                            cancel.setVisibility(View.VISIBLE);
+
                         }
                     }
                 });
@@ -165,6 +173,13 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         }
     }
 
+    @Override
+    public void setBattery(String content) {
+        if(content!=null){
+            battery.setText(content);
+            //Toast.makeText(this,"Your current battery level is "+content,Toast.LENGTH_SHORT).show();
+        }
+    }
 
     public void backWarn(){
         AlertDialog.Builder builder=new AlertDialog.Builder(MyTracker.this);
@@ -225,41 +240,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     }
 
-/*
 
 
-
-    public void onLocationChanged(Location location){   //update the location
-        nowLocation=location;
-        SimpleDateFormat sdf=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-        updateTime=sdf.format(new Date());
-        savedLoc[saveCount][0]=nowLocation.getLongitude()+"";
-        savedLoc[saveCount][1]=nowLocation.getLatitude()+"";
-        savedLoc[saveCount][2]=updateTime;
-        saveCount++;
-        Log.d("g53mdp",nowLocation.getLatitude()+"");
-        Log.d("g53mdp",nowLocation.getLongitude()+"");
-        Log.d("g53mdp",updateTime);
-    }
-
-
-    public void updateLocation(){
-        try{
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,locationReq, this);
-            Log.d("g53mdp","resume succeed");
-        }catch (SecurityException e){
-            Toast.makeText(MyTracker.this,"Failed to update location",Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void stopUpdateLocation(){
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
-    }
-
-
-
-
-
-
- */
 }
