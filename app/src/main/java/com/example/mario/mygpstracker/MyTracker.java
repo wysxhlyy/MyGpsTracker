@@ -34,7 +34,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     private Button pause;
     private Button save;
-    private Button cancel;
     private TextView process;
     private TextView battery;
 
@@ -44,6 +43,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     private Handler h;
 
     private boolean tracking;
+    private BatteryReceiver batteryReceiver;
 
 
     private ServiceConnection serviceConnection=new ServiceConnection() {
@@ -78,21 +78,18 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
         mapFragment.getMapAsync(this);          //Add the google map.
 
-        cancel.setOnClickListener(this);
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
 
 
-        BatteryReceiver br=new BatteryReceiver();
+        batteryReceiver=new BatteryReceiver();
         IntentFilter intentFilter=new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(br,intentFilter);
-        br.setBroadcastData(this);
-
+        registerReceiver(batteryReceiver,intentFilter);
+        batteryReceiver.setBroadcastData(this);
 
     }
 
     public void initialize(){
-        cancel=(Button)findViewById(R.id.cancel);
         pause=(Button)findViewById(R.id.pause);
         save=(Button)findViewById(R.id.save);
         process=(TextView)findViewById(R.id.process);
@@ -129,7 +126,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                             tracking=true;
                             pause.setVisibility(View.VISIBLE);
                             save.setVisibility(View.VISIBLE);
-                            cancel.setVisibility(View.VISIBLE);
+                            save.setEnabled(false);
 
                         }
                     }
@@ -141,16 +138,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     public void onClick(View view){
         switch (view.getId()){
-            case R.id.cancel:
-                if (!tracking){
-                    Intent intent=new Intent(MyTracker.this,MainActivity.class);
-                    startActivity(intent);
-                }else {
-                    backWarn();
-                }
-
-                //stop the track
-                break;
             case R.id.pause:
                 if(pause.getText().equals("pause")){
                     trackService.onPause();
@@ -179,6 +166,37 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
             battery.setText(content);
             //Toast.makeText(this,"Your current battery level is "+content,Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void onBackPressed(){
+        if(tracking){
+            AlertDialog.Builder builder=new AlertDialog.Builder(MyTracker.this);
+            builder.setTitle("Back");
+            builder.setMessage("Please stop tracking before return to the main page.");
+
+            builder.setNegativeButton("Keep Tracking", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Toast.makeText(MyTracker.this,"Still Tracking",Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    trackService.onStop();
+                    MyTracker.super.onBackPressed();
+                    unregisterReceiver(batteryReceiver);
+                }
+            });
+
+            AlertDialog dialog=builder.create();
+            dialog.show();
+        }else {
+            MyTracker.super.onBackPressed();
+            unregisterReceiver(batteryReceiver);
+        }
+
     }
 
     public void backWarn(){

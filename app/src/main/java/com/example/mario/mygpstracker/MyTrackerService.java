@@ -144,7 +144,11 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
     }
 
     protected void onPause(){
-        stopUpdateLocation();
+        try{
+            stopUpdateLocation();
+        }catch (Exception e){
+            Toast.makeText(this,"GoogleApiClient is not connected yet,Try Again",Toast.LENGTH_SHORT);
+        }
         trackOrNot=false;
     }
 
