@@ -1,5 +1,6 @@
 package com.example.mario.mygpstracker;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -27,6 +28,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 
 
 public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener,BatteryReceiver.BroadcastData {
+
+    static final int ACTIVITY_TRACKER_REQUEST_CODE=1;
 
     private GoogleApiClient mGoogleApiClient;
     private MapFragment mapFragment;
@@ -66,7 +69,17 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         setContentView(R.layout.activity_my_tracker);
         initialize();
 
-        countDown();
+
+
+
+        intent=new Intent(MyTracker.this,MyTrackerService.class);
+        startService(intent);
+        MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
+        tracking=true;
+        pause.setVisibility(View.VISIBLE);
+        save.setVisibility(View.VISIBLE);
+        save.setEnabled(false);
+        process.setText("Tracking");
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -185,43 +198,27 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     trackService.onStop();
-                    MyTracker.super.onBackPressed();
                     unregisterReceiver(batteryReceiver);
+                    Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
+
+                    Intent result=new Intent();
+                    setResult(Activity.RESULT_CANCELED,result);
+                    finish();
                 }
             });
 
             AlertDialog dialog=builder.create();
             dialog.show();
         }else {
-            MyTracker.super.onBackPressed();
+            trackService.onStop();
             unregisterReceiver(batteryReceiver);
+            Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
+
+            Intent result=new Intent();
+            setResult(Activity.RESULT_CANCELED,result);
+            MyTracker.this.finish();
         }
 
-    }
-
-    public void backWarn(){
-        AlertDialog.Builder builder=new AlertDialog.Builder(MyTracker.this);
-        builder.setTitle("Back");
-        builder.setMessage("Please stop tracking before return to the main page.");
-
-        builder.setNegativeButton("Keep Tracking", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Toast.makeText(MyTracker.this,"Still Tracking",Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setPositiveButton("Sure", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                trackService.onStop();
-                Intent intent=new Intent(MyTracker.this,MainActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        AlertDialog dialog=builder.create();
-        dialog.show();
     }
 
 
@@ -253,9 +250,21 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         if(serviceConnection!=null){
             unbindService(serviceConnection);
             serviceConnection=null;
+            super.onDestroy();
         }
-        super.onDestroy();
 
+    }
+
+    protected void onSaveInstanceState(Bundle storeInfo){
+        super.onSaveInstanceState(storeInfo);
+        storeInfo.putString("trackOrNot",process.getText().toString());
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState){
+        super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState!=null){
+            process.setText(savedInstanceState.getString("trackOrNot"));
+        }
     }
 
 

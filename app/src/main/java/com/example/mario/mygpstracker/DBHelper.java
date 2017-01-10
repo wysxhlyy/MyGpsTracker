@@ -6,10 +6,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 
-/**
- * Created by mario on 2016/12/31.
- */
-
 public class DBHelper extends SQLiteOpenHelper {
 
     public DBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory,int version){

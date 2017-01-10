@@ -21,14 +21,12 @@ public class MyContentProvider extends ContentProvider {
 
 
     static final int LOCATIONS=1;
-    static final int LOCATION_ID=2;
-    static final String TABLE_NAME="locationRecords";
-    static final String DB_NAME="locationDB2";
+    static final String TABLE_NAME="locationRecords";   //Define the table name
+    static final String DB_NAME="locationDB2";          //Define the name of Database
 
     static {
         uriMatcher=new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords",LOCATIONS);
-        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords/#",LOCATION_ID);
+        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords",LOCATIONS);    //Used by all the tracking records.
     }
 
     @Override
@@ -70,7 +68,15 @@ public class MyContentProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String s, String[] strings) {
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        SQLiteDatabase db=dbHelper.getWritableDatabase();
+        switch (uriMatcher.match(uri)){
+            case LOCATIONS:
+                db.delete(TABLE_NAME,selection,selectionArgs);
+                break;
+        }
+
+        getContext().getContentResolver().notifyChange(uri,null);
         return 0;
     }
 

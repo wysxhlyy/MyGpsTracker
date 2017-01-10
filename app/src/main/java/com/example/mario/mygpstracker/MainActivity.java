@@ -1,10 +1,13 @@
 package com.example.mario.mygpstracker;
 
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.icu.text.SimpleDateFormat;
 import android.location.Location;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,6 +31,10 @@ import static java.sql.Types.DOUBLE;
 
 public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback{
 
+    static final int ACTIVITY_TRACKER_REQUEST_CODE=1;
+    static final int ACTIVITY_HISTORY_REQUEST_CODE=2;
+
+
     private GoogleApiClient mGoogleApiClient;
     private Location nowLocation;
 
@@ -40,6 +47,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private Cursor cursor;
     private String[][] todayLoc;
     private float todayDistance;
+
+    private int countDownInt=4;
+    private Handler h;
 
 
     @Override
@@ -65,8 +75,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent(MainActivity.this,MyTracker.class);
-                startActivity(intent);
+                countDown();
             }
         });
 
@@ -74,7 +83,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(MainActivity.this,TrackHistory.class);
-                startActivity(intent);
+                startActivityForResult(intent,ACTIVITY_HISTORY_REQUEST_CODE);
             }
         });
         try {
@@ -136,6 +145,47 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         }
 
         process.setText((int)todayDistance+"");
+    }
+
+    protected void onActivityResult(int requestCode,int resultCode,Intent data){
+
+        if(requestCode==ACTIVITY_HISTORY_REQUEST_CODE||requestCode==ACTIVITY_TRACKER_REQUEST_CODE){
+            if(resultCode==RESULT_CANCELED){
+                recreate();
+
+                Log.d("g53mdp","back");
+            }
+        }
+    }
+
+    public void countDown(){
+        h=new Handler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        countDownInt--;
+                        if(countDownInt>0){
+                            process.setText(countDownInt+"");
+                            countDown();
+                        }else if(countDownInt==0){
+                            process.setText("Start!");
+                            countDown();
+                        }else {
+                            Intent intent=new Intent(MainActivity.this,MyTracker.class);
+                            startActivityForResult(intent,ACTIVITY_TRACKER_REQUEST_CODE);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 
 

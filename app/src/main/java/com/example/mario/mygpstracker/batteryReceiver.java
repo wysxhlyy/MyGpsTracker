@@ -3,15 +3,11 @@ package com.example.mario.mygpstracker;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.BatteryManager;
-import android.provider.Settings;
-import android.util.Log;
-import android.widget.Toast;
 
-/**
- * Created by mario on 2017/1/6.
- */
+/*
+    Use broadcast receiver to get the battery status of system.
+*/
 
 public class BatteryReceiver extends BroadcastReceiver {
 
@@ -24,7 +20,7 @@ public class BatteryReceiver extends BroadcastReceiver {
         int batteryScale=intent.getIntExtra(BatteryManager.EXTRA_SCALE,-1);
         float batteryPercent=curretBattery/(float)batteryScale;
 
-        broadcastData.setBattery(batteryPercent*100+" %");
+        broadcastData.setBattery(" "+batteryPercent*100+" %");
 
     }
 

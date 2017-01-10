@@ -1,9 +1,12 @@
 package com.example.mario.mygpstracker;
 
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import com.opencsv.CSVWriter;
 
@@ -35,6 +39,7 @@ public class TrackHistory extends AppCompatActivity {
     private ListView listView;
 
     private Button export;
+    private Button delete;
     private String dlat5;
     private String dlong5;
     private String filePath;
@@ -95,10 +100,40 @@ public class TrackHistory extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 sendEmail();    //send the record to any Email.
-
             }
         });
 
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearData();
+            }
+        });
+
+
+    }
+
+    protected void clearData(){
+        AlertDialog.Builder builder=new AlertDialog.Builder(TrackHistory.this);
+        builder.setTitle("Clear");
+        builder.setMessage("Are you sure to clear all the tracking record?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                getContentResolver().delete(MyProviderContract.LOCATION_URI,null,null);
+                recreate();
+            }
+        });
+
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Toast.makeText(TrackHistory.this,"Nothing Changed",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        AlertDialog dialog=builder.create();
+        dialog.show();
     }
 
     protected void formatData(){
@@ -145,6 +180,12 @@ public class TrackHistory extends AppCompatActivity {
     public void initialize(){
         listView=(ListView)findViewById(R.id.lv);
         export=(Button)findViewById(R.id.export);
+        delete=(Button)findViewById(R.id.delete);
+    }
 
+    public void onBackPressed(){
+        Intent result=new Intent();
+        setResult(Activity.RESULT_CANCELED,result);
+        TrackHistory.this.finish();
     }
 }

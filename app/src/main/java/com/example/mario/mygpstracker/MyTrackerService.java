@@ -66,12 +66,12 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
     }
 
     public void notification(){
-        PendingIntent pi=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),0);
+        PendingIntent pi=PendingIntent.getActivity(this,0,new Intent(this,MyTracker.class),0);
         Resources r=getResources();
         Notification notification=new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark_disabled)
                 .setContentTitle("Activity Tracker")
-                .setContentTitle("Tracking...")
+                .setContentTitle("Tracking..")
                 .setContentIntent(pi)
                 .setAutoCancel(false)
                 .setDefaults(Notification.DEFAULT_SOUND)
@@ -140,6 +140,7 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
 
     protected void onStop(){
         mGoogleApiClient.disconnect();
+        stopSelf();
         trackOrNot=false;
     }
 
