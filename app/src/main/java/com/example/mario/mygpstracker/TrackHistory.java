@@ -40,6 +40,7 @@ public class TrackHistory extends AppCompatActivity {
 
     private Button export;
     private Button delete;
+    private Button show;
     private String dlat5;
     private String dlong5;
     private String filePath;
@@ -107,6 +108,14 @@ public class TrackHistory extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 clearData();
+            }
+        });
+
+        show.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(TrackHistory.this,ShowRoute.class);
+                startActivity(intent);
             }
         });
 
@@ -181,6 +190,7 @@ public class TrackHistory extends AppCompatActivity {
         listView=(ListView)findViewById(R.id.lv);
         export=(Button)findViewById(R.id.export);
         delete=(Button)findViewById(R.id.delete);
+        show=(Button)findViewById(R.id.show);
     }
 
     public void onBackPressed(){

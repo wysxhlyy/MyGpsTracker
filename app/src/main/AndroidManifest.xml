@@ -31,22 +31,23 @@
             android:name=".MyContentProvider"
             android:authorities="com.example.mario.mygpstracker.MyContentProvider"
             android:exported="true"
-            android:multiprocess="true"></provider>
+            android:multiprocess="true" />
 
         <service
             android:name=".MyTrackerService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
 
         <receiver android:name=".BatteryReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
-                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
-                <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
-                <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+                <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
+                <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
             </intent-filter>
         </receiver>
 
+        <activity android:name=".ShowRoute"></activity>
     </application>
 
 </manifest>

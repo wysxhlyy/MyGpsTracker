@@ -19,9 +19,14 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -36,6 +41,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
 
     private GoogleApiClient mGoogleApiClient;
+    private GoogleMap mMap;
     private Location nowLocation;
 
     private Button start;
@@ -65,8 +71,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                     .build();
         }
 
-        MapFragment mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);          //Add the google map.
 
         start=(Button)findViewById(R.id.start);
         history=(Button)findViewById(R.id.history);
@@ -91,6 +95,12 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
+        MapFragment mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);          //Add the google map.
+
+        mMap=mapFragment.getMap();
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
     }
 
@@ -174,12 +184,18 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                         countDownInt--;
                         if(countDownInt>0){
                             process.setText(countDownInt+"");
+                            start.setText("Starting..");
+                            start.setEnabled(false);
                             countDown();
                         }else if(countDownInt==0){
                             process.setText("Start!");
                             countDown();
                         }else {
                             Intent intent=new Intent(MainActivity.this,MyTracker.class);
+                            Bundle bundle=new Bundle();
+                            bundle.putString("latitude",nowLocation.getLatitude()+"");
+                            bundle.putString("longitude",nowLocation.getLongitude()+"");
+                            intent.putExtras(bundle);
                             startActivityForResult(intent,ACTIVITY_TRACKER_REQUEST_CODE);
                         }
                     }
@@ -195,7 +211,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
      */
     public void onMapReady(GoogleMap map){
         //map.addMarker(new MarkerOptions().position(new LatLng(nowLocation.getLongitude(),nowLocation.getLatitude())).title("Your position"));
-        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap=map;
+        Log.d("g53mdp","map added");
         try{
             map.setMyLocationEnabled(true);     //Enable to find the current location
         }catch (SecurityException e){
@@ -220,11 +237,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         try{
             nowLocation=LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if(nowLocation!=null){
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(nowLocation.getLatitude(),nowLocation.getLongitude()),15.0f));
                 Log.d("g53mdp",nowLocation.getLatitude()+"");
                 Log.d("g53mdp",nowLocation.getLongitude()+"");
-                //todayInfo+="Your Current Position:\n longitude "+nowLocation.getLongitude()+", latitude "+nowLocation.getLatitude();
-                //process.setText(todayInfo);
-
             }
         }catch (SecurityException e){
             Toast.makeText(MainActivity.this,"Failed to get location",Toast.LENGTH_SHORT).show();

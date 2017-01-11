@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
@@ -21,10 +22,11 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-
+import com.google.android.gms.maps.model.LatLng;
 
 
 public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener,BatteryReceiver.BroadcastData {
@@ -33,6 +35,8 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     private GoogleApiClient mGoogleApiClient;
     private MapFragment mapFragment;
+    private GoogleMap mMap;
+    private Location nowLocation;
 
 
     private Button pause;
@@ -69,9 +73,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         setContentView(R.layout.activity_my_tracker);
         initialize();
 
-
-
-
         intent=new Intent(MyTracker.this,MyTrackerService.class);
         startService(intent);
         MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
@@ -89,7 +90,16 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                     .build();
         }
 
+
+
         mapFragment.getMapAsync(this);          //Add the google map.
+        mMap=mapFragment.getMap();
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        Bundle bundle=getIntent().getExtras();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(bundle.getString("latitude")),Double.parseDouble(bundle.getString("longitude"))),15.0f));
+
+
 
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
@@ -109,43 +119,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         mapFragment=(MapFragment)getFragmentManager().findFragmentById(R.id.map);
         battery=(TextView)findViewById(R.id.battery);
 
-    }
-
-    public void countDown(){
-        h=new Handler();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                h.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        countDownInt--;
-                        if(countDownInt>0){
-                            process.setText(countDownInt+"");
-                            countDown();
-                        }else if(countDownInt==0){
-                            process.setText("Start!");
-                            countDown();
-                        }else {
-                            process.setText("Tracking");
-                            intent=new Intent(MyTracker.this,MyTrackerService.class);
-                            startService(intent);
-                            MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
-                            tracking=true;
-                            pause.setVisibility(View.VISIBLE);
-                            save.setVisibility(View.VISIBLE);
-                            save.setEnabled(false);
-
-                        }
-                    }
-                });
-            }
-        }).start();
     }
 
 
@@ -223,8 +196,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
 
     public void onMapReady(GoogleMap map){
-        //map.addMarker(new MarkerOptions().position(new LatLng(nowLocation.getLongitude(),nowLocation.getLatitude())).title("Your position"));
-        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap=map;
         try{
             map.setMyLocationEnabled(true);     //Enable to find the current location
         }catch (SecurityException e){
@@ -234,7 +206,13 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     }
 
     public void onConnected(Bundle con){
-
+        Log.d("g53mdp","connected");
+        try{
+            if(nowLocation!=null){
+            }
+        }catch (SecurityException e){
+            Toast.makeText(MyTracker.this,"Failed to get location",Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onConnectionSuspended(int con){
