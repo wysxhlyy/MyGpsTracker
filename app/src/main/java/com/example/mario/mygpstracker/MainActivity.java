@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private TextView process;
 
     private Cursor cursor;
-    private String[][] todayLoc;
+    private String[][] allLoc;
     private float todayDistance;
 
     private int countDownInt=4;
@@ -90,7 +90,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             }
         });
         try {
-            getTodayInfo();                                                                         //Get the user moving distance today.
+            getInfo();                                                                         //Get the user's whole moving distance.
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -104,11 +104,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     }
 
     /**
-     * Get the user moving distance today.
+     * Get the user's whole moving distance.
      * @throws ParseException
      */
-    private void getTodayInfo() throws ParseException {
-        todayLoc=new String[2000][3];
+    private void getInfo() throws ParseException {
+        allLoc=new String[2000][3];
         todayDistance=0;
         String[] projection=new String[]{
                 MyProviderContract._ID,
@@ -123,9 +123,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
         while (cursor.moveToNext()){
             Log.d("g53mdp",count+":"+cursor.getString(1)+","+cursor.getString(2)+","+cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE)));
-            todayLoc[count][0]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
-            todayLoc[count][1]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
-            todayLoc[count][2]=cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
+            allLoc[count][0]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
+            allLoc[count][1]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
+            allLoc[count][2]=cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
 
             count++;
         }
@@ -144,18 +144,18 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
      */
     public void calculateDistance() {
         for (int i = 0; i < count - 1; i++) {
-            double long1 = Double.parseDouble(todayLoc[i][0]);
-            double lat1 = Double.parseDouble(todayLoc[i][1]);
-            double long2 = Double.parseDouble(todayLoc[i + 1][0]);
-            double lat2 = Double.parseDouble(todayLoc[i + 1][1]);
+            double long1 = Double.parseDouble(allLoc[i][0]);
+            double lat1 = Double.parseDouble(allLoc[i][1]);
+            double long2 = Double.parseDouble(allLoc[i + 1][0]);
+            double lat2 = Double.parseDouble(allLoc[i + 1][1]);
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
 
 
             Date time1 = null;
             Date time2 = null;
             try {
-                time1 = format.parse(todayLoc[i][2]);
-                time2 = format.parse(todayLoc[i + 1][2]);
+                time1 = format.parse(allLoc[i][2]);
+                time2 = format.parse(allLoc[i + 1][2]);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -168,7 +168,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             Log.d("g53mdp", i + ":" + distBetweenTwoNodes[0] + "," + "timediff:" + timediff);
 
 
-            if (Math.abs(timediff) <= 10) {                 //If the record time less than 10 seconds,regarded as the same track.
+            if (Math.abs(timediff) <= 10) {                                                         //If the record time less than 10 seconds,regarded as the same track.
                 todayDistance += distBetweenTwoNodes[0];
             }
 
