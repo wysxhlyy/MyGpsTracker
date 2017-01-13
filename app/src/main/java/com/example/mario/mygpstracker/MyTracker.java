@@ -46,8 +46,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     private MyTrackerService.MyBinder trackService;
     private Intent intent;
-    private int countDownInt=4;
-    private Handler h;
 
     private boolean tracking;
     private BatteryReceiver batteryReceiver;
@@ -96,9 +94,11 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         mMap=mapFragment.getMap();
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        Bundle bundle=getIntent().getExtras();
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(bundle.getString("latitude")),Double.parseDouble(bundle.getString("longitude"))),15.0f));
 
+        Bundle bundle=getIntent().getExtras();
+        if(bundle!=null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(bundle.getString("latitude")),Double.parseDouble(bundle.getString("longitude"))),13.0f));
+        }
 
 
         pause.setOnClickListener(this);
@@ -208,7 +208,11 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     public void onConnected(Bundle con){
         Log.d("g53mdp","connected");
         try{
+            nowLocation=LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if(nowLocation!=null){
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(nowLocation.getLatitude(),nowLocation.getLongitude()),15.0f));
+                Log.d("g53mdp",nowLocation.getLatitude()+"");
+                Log.d("g53mdp",nowLocation.getLongitude()+"");
             }
         }catch (SecurityException e){
             Toast.makeText(MyTracker.this,"Failed to get location",Toast.LENGTH_SHORT).show();

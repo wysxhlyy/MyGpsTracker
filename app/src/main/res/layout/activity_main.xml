@@ -33,7 +33,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:background="@color/black"
         />
 
@@ -71,10 +71,11 @@
         >
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Start Track"
             android:id="@+id/start"
+            android:background="@drawable/normal_btn"
             />
 
         <Button
@@ -83,6 +84,7 @@
             android:text="History"
             android:id="@+id/history"
             android:layout_marginLeft="10dp"
+            android:background="@drawable/normal_btn"
             />
     </LinearLayout>
 

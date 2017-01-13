@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="longitude"
-        android:textAlignment="viewEnd"
+        android:textAlignment="viewStart"
         android:textSize="15dp"
         android:id="@+id/value2"
         android:layout_weight="0.3" />

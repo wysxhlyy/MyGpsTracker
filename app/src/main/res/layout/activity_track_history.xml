@@ -23,10 +23,13 @@
         />
 
     <ListView
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_width="360dp"
+        android:layout_height="420dp"
         android:layout_marginTop="30dp"
+        android:layout_gravity="center"
+        android:padding="10dp"
         android:id="@+id/lv"
+        android:background="@drawable/bg_focus_image"
         >
         
     </ListView>
@@ -35,26 +38,34 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_marginTop="30dp"
         >
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Export"
+            android:background="@drawable/normal_btn"
             android:id="@+id/export"
             />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="120dp"
             android:layout_height="wrap_content"
             android:text="Show On Map"
+            android:background="@drawable/normal_btn"
+            android:layout_marginLeft="10dp"
             android:id="@+id/show"
             />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:text="Delete"
+            android:background="@drawable/normal_btn"
+            android:textColor="@color/red"
             android:id="@+id/delete"
             />
 

@@ -48,7 +48,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
     private Button history;
 
     private TextView process;
-    private String todayInfo=" ";
 
     private Cursor cursor;
     private String[][] todayLoc;
@@ -56,6 +55,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     private int countDownInt=4;
     private Handler h;
+    private int count;
 
 
     @Override
@@ -115,7 +115,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 MyProviderContract.DATE
         };
 
-        int count=0;
+        count=0;
 
         cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
 
@@ -130,31 +130,42 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
         Log.d("g53mdp","cursor count"+cursor.getCount()+"count:"+count);
 
-        for(int i=0;i<count-1;i++){
-            double long1=Double.parseDouble(todayLoc[i][0]);
-            double lat1=Double.parseDouble(todayLoc[i][1]);
-            double long2=Double.parseDouble(todayLoc[i+1][0]);
-            double lat2=Double.parseDouble(todayLoc[i+1][1]);
-            SimpleDateFormat format=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-
-
-            Date time1=format.parse(todayLoc[i][2]);
-            Date time2 = format.parse(todayLoc[i + 1][2]);
-
-            float[] distBetweenTwoNodes=new float[1];
-            Location.distanceBetween(lat1,long1,lat2,long2,distBetweenTwoNodes);
-
-            long timediff=time2.getTime()-time1.getTime();
-            timediff=timediff/1000;
-            Log.d("g53mdp",i+":"+distBetweenTwoNodes[0]+","+"timediff:"+timediff);
-
-
-            if(Math.abs(timediff)<=10){                 //If the record time less than 10 seconds,regarded as the same track.
-                todayDistance+=distBetweenTwoNodes[0];
-            }
-        }
+        calculateDistance();
 
         process.setText((int)todayDistance+"");
+    }
+
+    public void calculateDistance() {
+        for (int i = 0; i < count - 1; i++) {
+            double long1 = Double.parseDouble(todayLoc[i][0]);
+            double lat1 = Double.parseDouble(todayLoc[i][1]);
+            double long2 = Double.parseDouble(todayLoc[i + 1][0]);
+            double lat2 = Double.parseDouble(todayLoc[i + 1][1]);
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+
+
+            Date time1 = null;
+            Date time2 = null;
+            try {
+                time1 = format.parse(todayLoc[i][2]);
+                time2 = format.parse(todayLoc[i + 1][2]);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            float[] distBetweenTwoNodes = new float[1];
+            Location.distanceBetween(lat1, long1, lat2, long2, distBetweenTwoNodes);
+
+            long timediff = time2.getTime() - time1.getTime();
+            timediff = timediff / 1000;
+            Log.d("g53mdp", i + ":" + distBetweenTwoNodes[0] + "," + "timediff:" + timediff);
+
+
+            if (Math.abs(timediff) <= 10) {                 //If the record time less than 10 seconds,regarded as the same track.
+                todayDistance += distBetweenTwoNodes[0];
+            }
+
+        }
     }
 
     protected void onActivityResult(int requestCode,int resultCode,Intent data){

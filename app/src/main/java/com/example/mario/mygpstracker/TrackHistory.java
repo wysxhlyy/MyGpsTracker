@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -75,10 +76,15 @@ public class TrackHistory extends AppCompatActivity {
         cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
         List<Map<String,Object>> list=new ArrayList<Map<String, Object>>();
         Map<String,Object> map;
+        map=new HashMap<String,Object>();
+
+        map.put(MyProviderContract.LATITUDE,"Latitude");
+        map.put(MyProviderContract.LONGITUDE,"Longitude");
+        map.put(MyProviderContract.DATE,"Record Time      ");
+        list.add(map);
 
         while (cursor.moveToNext()){
             map=new HashMap<String,Object>();
-
             formatData();   //format the data
             map.put(MyProviderContract.LATITUDE,dlat5);
             map.put(MyProviderContract.LONGITUDE,dlong5);
