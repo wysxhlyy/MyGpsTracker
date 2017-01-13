@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,18 +22,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URI;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
+
+/**
+ * Used to show the information stored in database.
+ * The tracking information includes the latitude,longitude and record time.
+ * The user could use this activity to export the data by Email or delete all the data.
+ */
 public class TrackHistory extends AppCompatActivity {
 
-    private float distance;
     private Cursor cursor;
     private SimpleAdapter dataAdapter;
     private ListView listView;
@@ -47,13 +48,52 @@ public class TrackHistory extends AppCompatActivity {
     private String filePath;
     private File newFile;
 
+    private String[] columnsToDisplay;
+    private int[] colRedIds;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track_history);
 
-        initialize();
+        initialize();                                                                               //initialize the components.
 
+        getData();                                                                                  //get Data from database.
+
+        setDataInListview();                                                                        //Put the selected data into listview.
+
+        export.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    exportData();                                                                   //store the file in the storage.
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                sendEmail();                                                                        //send the record to an Email address using email app like Gmail.
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearData();                                                                        //delete all the data
+            }
+        });
+
+        show.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(TrackHistory.this,ShowRoute.class);
+                startActivity(intent);                                                              //Visually display track record for a specified day.
+            }
+        });
+    }
+
+    /**
+     * Get data from database.
+     */
+    public void getData(){
         String[] projection=new String[]{
                 MyProviderContract._ID,
                 MyProviderContract.LONGITUDE,
@@ -61,19 +101,25 @@ public class TrackHistory extends AppCompatActivity {
                 MyProviderContract.DATE
         };
 
-        String[] columnsToDisplay=new String[]{
+        columnsToDisplay=new String[]{
                 MyProviderContract.LATITUDE,
                 MyProviderContract.LONGITUDE,
                 MyProviderContract.DATE
         };
 
-        int[] colRedIds=new int[]{
+        colRedIds=new int[]{
                 R.id.value1,
                 R.id.value2,
                 R.id.value3
         };
 
         cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
+    }
+
+    /**
+     * Put the track record got from database into listview.
+     */
+    public void setDataInListview(){
         List<Map<String,Object>> list=new ArrayList<Map<String, Object>>();
         Map<String,Object> map;
         map=new HashMap<String,Object>();
@@ -93,45 +139,17 @@ public class TrackHistory extends AppCompatActivity {
         }
 
         dataAdapter=new SimpleAdapter(this,list,R.layout.db_item_layout,columnsToDisplay,colRedIds);
-
         listView.setAdapter(dataAdapter);
-
-
-        export.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    exportData();       //store the file in the storage.
-                } catch (IOException e) {
-                    Log.d("g53mdp","hello");
-                    e.printStackTrace();
-                }
-                sendEmail();    //send the record to any Email.
-            }
-        });
-
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                clearData();
-            }
-        });
-
-        show.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent=new Intent(TrackHistory.this,ShowRoute.class);
-                startActivity(intent);
-            }
-        });
-
-
     }
 
+    /**
+     * Delete all the track record.
+     * Show a dialog to let user comfirm the deletion.
+     */
     protected void clearData(){
         AlertDialog.Builder builder=new AlertDialog.Builder(TrackHistory.this);
         builder.setTitle("Clear");
-        builder.setMessage("Are you sure to clear all the tracking record?");
+        builder.setMessage("Are you sure to clear all the track record?");
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -151,6 +169,10 @@ public class TrackHistory extends AppCompatActivity {
         dialog.show();
     }
 
+
+    /**
+     * Format data to transfer it from String to Double.
+     */
     protected void formatData(){
         String latitude=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
         String longitude=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
@@ -160,18 +182,21 @@ public class TrackHistory extends AppCompatActivity {
         dlong5=new Formatter().format("%.5f",dlong).toString();
     }
 
+
+    /**
+     * Export data and store the file in the device.
+     * Exported data includes latitude,longitude and record time.
+     * @throws IOException
+     */
     protected void exportData() throws IOException {
         String base=android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
         String fileName="TrackRecords.csv";
         filePath=base+ File.separator+fileName;
 
-        Log.d("g53mdp",filePath);
-
         newFile=new File(filePath);
         Writer writer=new FileWriter(newFile);
         CSVWriter csvWriter= new CSVWriter(writer,',');
 
-        List<String[]> data=new ArrayList<String[]>();
         csvWriter.writeNext(new String[]{"Latitude","Longitude","Time"});
 
         cursor.moveToFirst();
@@ -179,10 +204,14 @@ public class TrackHistory extends AppCompatActivity {
             formatData();
             csvWriter.writeNext(new String[]{dlat5,dlong5,cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE))});
         }
-
         csvWriter.close();
     }
 
+    /**
+     * Allow the user to export data by Email because it is hard for user to get exported
+     * data in the external storage of device.
+     * This requires an Email app downloaded in the device. e.g.,Gmail App.
+     */
     protected void sendEmail(){
         Intent intent=new Intent(Intent.ACTION_SEND);
         intent.setType("text/rfc822");
@@ -192,6 +221,9 @@ public class TrackHistory extends AppCompatActivity {
         startActivity(Intent.createChooser(intent,"Choose Email Client:"));
     }
 
+    /**
+     * Initial the components.
+     */
     public void initialize(){
         listView=(ListView)findViewById(R.id.lv);
         export=(Button)findViewById(R.id.export);
@@ -199,6 +231,10 @@ public class TrackHistory extends AppCompatActivity {
         show=(Button)findViewById(R.id.show);
     }
 
+
+    /**
+     * Handle the back button.
+     */
     public void onBackPressed(){
         Intent result=new Intent();
         setResult(Activity.RESULT_CANCELED,result);

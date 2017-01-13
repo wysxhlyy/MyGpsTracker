@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.location.Location;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +28,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 
 
+/**
+ * This activity used to control the track.
+ * User could choose to pause the track and resume the track.
+ * Only the records that user wants to save will be saved into database.
+ */
 public class MyTracker extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback,View.OnClickListener,BatteryReceiver.BroadcastData {
 
     static final int ACTIVITY_TRACKER_REQUEST_CODE=1;
@@ -72,12 +76,10 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         initialize();
 
         intent=new Intent(MyTracker.this,MyTrackerService.class);
-        startService(intent);
+        startService(intent);                                                                       //start the service.
         MyTracker.this.bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE);
         tracking=true;
-        pause.setVisibility(View.VISIBLE);
-        save.setVisibility(View.VISIBLE);
-        save.setEnabled(false);
+        save.setEnabled(false);                                                                     //The user could save the track records when the track is paused.
         process.setText("Tracking");
 
         if (mGoogleApiClient == null) {
@@ -90,7 +92,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
 
 
-        mapFragment.getMapAsync(this);          //Add the google map.
+        mapFragment.getMapAsync(this);                                                              //Add the google map.
         mMap=mapFragment.getMap();
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
@@ -98,8 +100,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
         Bundle bundle=getIntent().getExtras();
         if(bundle!=null){
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(bundle.getString("latitude")),Double.parseDouble(bundle.getString("longitude"))),13.0f));
-        }
-
+        }                                                                                           //animate the camera to let user see his position immediately.
 
         pause.setOnClickListener(this);
         save.setOnClickListener(this);
@@ -112,6 +113,9 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
     }
 
+    /**
+     * Initial the components.
+     */
     public void initialize(){
         pause=(Button)findViewById(R.id.pause);
         save=(Button)findViewById(R.id.save);
@@ -122,6 +126,10 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
     }
 
 
+    /**
+     * Buttons handler.
+     * @param view
+     */
     public void onClick(View view){
         switch (view.getId()){
             case R.id.pause:
@@ -140,25 +148,36 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                 }
                 break;
             case R.id.save:
-                trackService.saveLocation();
+                trackService.saveLocation();                                                        //save the records to database.
                 save.setEnabled(false);
                 break;
         }
     }
 
+    /**
+     * Set the battery.
+     * The battery information is from BatteryReceiver.
+     * @param content
+     */
     @Override
     public void setBattery(String content) {
         if(content!=null){
             battery.setText(content);
-            //Toast.makeText(this,"Your current battery level is "+content,Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"Your current battery level is "+content,Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * Handle the back button.
+     * If the service is paused, user could back directly, user will lose the track records if press back without click the "save" button.
+     * If the track service is running,a dialog will be shown to alert the user.
+     * Track service will be stopped after user leave this activity.
+     */
     public void onBackPressed(){
         if(tracking){
             AlertDialog.Builder builder=new AlertDialog.Builder(MyTracker.this);
             builder.setTitle("Back");
-            builder.setMessage("Please stop tracking before return to the main page.");
+            builder.setMessage("Please stop tracking and save the track records before return to the main page.");
 
             builder.setNegativeButton("Keep Tracking", new DialogInterface.OnClickListener() {
                 @Override
@@ -174,8 +193,9 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                     unregisterReceiver(batteryReceiver);
                     Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
 
-                    Intent result=new Intent();
+                    Intent result=new Intent(MyTracker.this,MainActivity.class);
                     setResult(Activity.RESULT_CANCELED,result);
+                    startActivity(result);
                     finish();
                 }
             });
@@ -187,20 +207,25 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
             unregisterReceiver(batteryReceiver);
             Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
 
-            Intent result=new Intent();
+            Intent result=new Intent(MyTracker.this,MainActivity.class);
             setResult(Activity.RESULT_CANCELED,result);
-            MyTracker.this.finish();
+            startActivity(result);
+            finish();
         }
 
     }
 
 
+    /**
+     * Set the google map.
+     * @param map
+     */
     public void onMapReady(GoogleMap map){
         mMap=map;
         try{
-            map.setMyLocationEnabled(true);     //Enable to find the current location
+            map.setMyLocationEnabled(true);                                                         //Enable to find the current location
         }catch (SecurityException e){
-            //ask for permission
+            e.printStackTrace();
         }
 
     }
@@ -218,14 +243,6 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
             Toast.makeText(MyTracker.this,"Failed to get location",Toast.LENGTH_SHORT).show();
         }
     }
-
-    public void onConnectionSuspended(int con){
-
-    }
-
-    public void onConnectionFailed(ConnectionResult cr){
-    }
-
 
     protected void onDestroy(){
         Log.d("g54mdp","Activity Destroyed");
@@ -248,6 +265,16 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
             process.setText(savedInstanceState.getString("trackOrNot"));
         }
     }
+
+
+    public void onConnectionSuspended(int con){
+
+    }
+
+    public void onConnectionFailed(ConnectionResult cr){
+    }
+
+
 
 
 

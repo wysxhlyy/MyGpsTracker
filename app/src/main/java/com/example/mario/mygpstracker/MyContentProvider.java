@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 /**
- * Created by mario on 2016/12/31.
+ * A typical content provider is built.
  */
 
 public class MyContentProvider extends ContentProvider {
@@ -21,12 +21,12 @@ public class MyContentProvider extends ContentProvider {
 
 
     static final int LOCATIONS=1;
-    static final String TABLE_NAME="locationRecords";   //Define the table name
-    static final String DB_NAME="locationDB2";          //Define the name of Database
+    static final String TABLE_NAME="locationRecords";                                               //Define the table name
+    static final String DB_NAME="locationDB2";                                                      //Define the name of Database
 
     static {
         uriMatcher=new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords",LOCATIONS);    //Used by all the tracking records.
+        uriMatcher.addURI(MyProviderContract.AUTHORITY,"locationRecords",LOCATIONS);                //Used by all the tracking records.
     }
 
     @Override

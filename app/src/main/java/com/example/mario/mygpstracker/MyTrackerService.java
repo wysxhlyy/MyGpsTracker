@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Bundle;
@@ -26,6 +25,9 @@ import com.google.android.gms.location.LocationServices;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Track service using google api.
+ */
 public class MyTrackerService extends Service implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener {
     public MyTrackerService() {
 
@@ -63,23 +65,6 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         createLocReq();
         onStart();
         notification();
-    }
-
-    public void notification(){
-        Intent notificationIntent=new Intent(this,MyTracker.class);
-        PendingIntent pi=PendingIntent.getActivity(this,0,notificationIntent,0);
-
-        Notification notification=new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark_disabled)
-                .setContentTitle("Activity Tracker")
-                .setContentTitle("Tracking..")
-                .setContentIntent(pi)
-                .setAutoCancel(false)
-                .setDefaults(Notification.DEFAULT_SOUND)
-                .build();
-
-        NotificationManager nManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        nManager.notify(0,notification);
     }
 
 
@@ -133,6 +118,88 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         }
 
     }
+
+
+    /**
+     * Save the tracked locations into database.
+     */
+    protected void saveLocation(){
+        ContentValues newLocationRecord=new ContentValues();
+        for(int i=0;i<saveCount;i++){
+            newLocationRecord.put(MyProviderContract.LONGITUDE,savedLoc[i][0]);
+            newLocationRecord.put(MyProviderContract.LATITUDE,savedLoc[i][1]);
+            newLocationRecord.put(MyProviderContract.DATE,savedLoc[i][2]);
+            getContentResolver().insert(MyProviderContract.LOCATION_URI,newLocationRecord);
+        }
+    }
+
+    /**
+     * Create the notification.
+     */
+    public void notification(){
+        Intent notificationIntent=new Intent(this,MyTracker.class);
+        PendingIntent pi=PendingIntent.getActivity(this,0,notificationIntent,0);
+
+        Notification notification=new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark_disabled)
+                .setContentTitle("Activity Tracker")
+                .setContentTitle("Tracking..")
+                .setContentIntent(pi)
+                .setAutoCancel(false)
+                .setDefaults(Notification.DEFAULT_SOUND)
+                .build();
+
+        NotificationManager nManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        nManager.notify(0,notification);
+    }
+
+
+    /**
+     * Create the location request.
+     * The location will be recorded every 5-10 s.
+     */
+    protected void createLocReq(){
+        locationReq=new LocationRequest();
+        locationReq.setInterval(10000);
+        locationReq.setFastestInterval(5000);
+        locationReq.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+
+    /**
+     * Start updating the location.
+     */
+    public void updateLocation(){
+        try{
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,locationReq, this);
+            Log.d("g53mdp","resume succeed");
+        }catch (SecurityException e){
+            Toast.makeText(MyTrackerService.this,"Failed to update location",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Stop updating the location.
+     */
+    public void stopUpdateLocation(){
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+    }
+
+    /**
+     * Record the location information when location is changing.
+     * The recorded information include latitude,longitude and time.
+     * @param location
+     */
+    @Override
+    public void onLocationChanged(Location location) {
+        SimpleDateFormat sdf=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+        updateTime=sdf.format(new Date());
+        savedLoc[saveCount][0]=location.getLongitude()+"";
+        savedLoc[saveCount][1]=location.getLatitude()+"";
+        savedLoc[saveCount][2]=updateTime;
+        saveCount++;
+    }
+
 
     protected void  onStart(){
         mGoogleApiClient.connect();
@@ -198,50 +265,6 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         return saveCount;
     }
 
-    protected void saveLocation(){
-        ContentValues newLocationRecord=new ContentValues();
-        for(int i=0;i<saveCount;i++){
-            newLocationRecord.put(MyProviderContract.LONGITUDE,savedLoc[i][0]);
-            newLocationRecord.put(MyProviderContract.LATITUDE,savedLoc[i][1]);
-            newLocationRecord.put(MyProviderContract.DATE,savedLoc[i][2]);
-            getContentResolver().insert(MyProviderContract.LOCATION_URI,newLocationRecord);
-        }
-    }
-
-
-    protected void createLocReq(){
-        locationReq=new LocationRequest();
-        locationReq.setInterval(10000);
-        locationReq.setFastestInterval(5000);
-        locationReq.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-
-    public void updateLocation(){
-        try{
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,locationReq, this);
-            Log.d("g53mdp","resume succeed");
-        }catch (SecurityException e){
-            Toast.makeText(MyTrackerService.this,"Failed to update location",Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void stopUpdateLocation(){
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        SimpleDateFormat sdf=new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-        updateTime=sdf.format(new Date());
-        savedLoc[saveCount][0]=location.getLongitude()+"";
-        savedLoc[saveCount][1]=location.getLatitude()+"";
-        savedLoc[saveCount][2]=updateTime;
-        saveCount++;
-        Log.d("g53mdp",location.getLatitude()+"");
-        Log.d("g53mdp",location.getLongitude()+"");
-        Log.d("g53mdp",updateTime);
-    }
 
 
 

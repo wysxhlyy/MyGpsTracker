@@ -2,9 +2,6 @@ package com.example.mario.mygpstracker;
 
 import android.net.Uri;
 
-/**
- * Created by mario on 2016/12/31.
- */
 
 public class MyProviderContract {
 

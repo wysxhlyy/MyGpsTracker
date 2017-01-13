@@ -1,8 +1,5 @@
 package com.example.mario.mygpstracker;
 
-
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.icu.text.SimpleDateFormat;
@@ -24,15 +21,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
+
 
 import java.text.ParseException;
 import java.util.Date;
 
-import static java.sql.Types.DOUBLE;
 
+/**
+ * MainActivity here is acted as a controller or an entrance of the app. No actual use.
+ * Google map in this activity is only used for showing the user's position.
+ * After click start Track button,the track service will start after 3 seconds.
+ */
 
 public class MainActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,OnMapReadyCallback{
 
@@ -91,7 +90,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             }
         });
         try {
-            getTodayInfo();
+            getTodayInfo();                                                                         //Get the user moving distance today.
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -104,7 +103,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     }
 
-    //Get the information of today.
+    /**
+     * Get the user moving distance today.
+     * @throws ParseException
+     */
     private void getTodayInfo() throws ParseException {
         todayLoc=new String[2000][3];
         todayDistance=0;
@@ -135,6 +137,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         process.setText((int)todayDistance+"");
     }
 
+    /**
+     * Calculate the distance according to the latitude and longitude.
+     * Two locations will be set as the same single track if the difference of their record time is within 10 seconds.
+     * The same single track means the two locations share the same start point and end point.
+     */
     public void calculateDistance() {
         for (int i = 0; i < count - 1; i++) {
             double long1 = Double.parseDouble(todayLoc[i][0]);
@@ -168,17 +175,25 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         }
     }
 
+    /**
+     * Refresh the moving distance.
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
         if(requestCode==ACTIVITY_HISTORY_REQUEST_CODE||requestCode==ACTIVITY_TRACKER_REQUEST_CODE){
             if(resultCode==RESULT_CANCELED){
                 recreate();
-
                 Log.d("g53mdp","back");
             }
         }
     }
 
+    /**
+     * Set a countdown before start the service
+     */
     public void countDown(){
         h=new Handler();
         new Thread(new Runnable() {
@@ -204,8 +219,10 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                         }else {
                             Intent intent=new Intent(MainActivity.this,MyTracker.class);
                             Bundle bundle=new Bundle();
-                            bundle.putString("latitude",nowLocation.getLatitude()+"");
-                            bundle.putString("longitude",nowLocation.getLongitude()+"");
+                            if(nowLocation!=null){
+                                bundle.putString("latitude",nowLocation.getLatitude()+"");
+                                bundle.putString("longitude",nowLocation.getLongitude()+"");
+                            }
                             intent.putExtras(bundle);
                             startActivityForResult(intent,ACTIVITY_TRACKER_REQUEST_CODE);
                         }
