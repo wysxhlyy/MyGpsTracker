@@ -66,16 +66,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="15dp"
         android:layout_gravity="center"
         >
 
+
+
         <Button
-            android:layout_width="150dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today"
+            android:id="@+id/today"
+            android:background="@drawable/normal_btn"
+
+            />
+
+        <Button
+            android:layout_width="130dp"
             android:layout_height="wrap_content"
             android:text="Start Track"
+            android:fontFamily="cursive"
+            android:textSize="15dp"
+            android:textColor="#fff"
             android:id="@+id/start"
-            android:background="@drawable/normal_btn"
+            android:background="@drawable/start_track_btn"
+            android:layout_marginLeft="15dp"
+
             />
 
         <Button
@@ -83,7 +99,7 @@
             android:layout_height="wrap_content"
             android:text="History"
             android:id="@+id/history"
-            android:layout_marginLeft="10dp"
+            android:layout_marginLeft="15dp"
             android:background="@drawable/normal_btn"
             />
     </LinearLayout>

@@ -126,7 +126,7 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
      */
     protected void drawRoute(int day, int month, int year) {
         route = new PolylineOptions();
-        todayLoc = new String[2000][3];                                                               //todayLoc stores all the location information of that day.
+        todayLoc = new String[20000][3];                                                               //todayLoc stores all the location information of that day.
 
         while (cursor.moveToNext()) {
             String getDateData = cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
@@ -207,7 +207,7 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
             timediff = timediff / 1000;
 
 
-            if (Math.abs(timediff) <= 10) {                                                         //If the record time less than 10 seconds,regarded as the same track.
+            if (Math.abs(timediff) <= 10) {                                                         //If the difference of record time less than 10 seconds,regarded as the same track.
                 todayDistance += distBetweenTwoNodes[0];
             }
         }

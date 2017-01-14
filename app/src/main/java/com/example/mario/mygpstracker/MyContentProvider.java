@@ -22,7 +22,7 @@ public class MyContentProvider extends ContentProvider {
 
     static final int LOCATIONS=1;
     static final String TABLE_NAME="locationRecords";                                               //Define the table name
-    static final String DB_NAME="locationDB2";                                                      //Define the name of Database
+    static final String DB_NAME="locationsDB";                                                      //Define the name of Database
 
     static {
         uriMatcher=new UriMatcher(UriMatcher.NO_MATCH);

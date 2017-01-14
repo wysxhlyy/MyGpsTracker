@@ -37,6 +37,8 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     static final int ACTIVITY_TRACKER_REQUEST_CODE=1;
     static final int ACTIVITY_HISTORY_REQUEST_CODE=2;
+    static final int ACTIVITY_TODAY_REQUEST_CODE=3;
+
 
 
     private GoogleApiClient mGoogleApiClient;
@@ -45,6 +47,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
     private Button start;
     private Button history;
+    private Button todayInfo;
 
     private TextView process;
 
@@ -74,6 +77,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         start=(Button)findViewById(R.id.start);
         history=(Button)findViewById(R.id.history);
         process=(TextView)findViewById(R.id.process);
+        todayInfo=(Button)findViewById(R.id.today);
 
         start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,6 +93,16 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                 startActivityForResult(intent,ACTIVITY_HISTORY_REQUEST_CODE);
             }
         });
+
+        todayInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(MainActivity.this,TodayInfo.class);
+                startActivityForResult(intent,ACTIVITY_TODAY_REQUEST_CODE);
+            }
+        });
+
+
         try {
             getInfo();                                                                         //Get the user's whole moving distance.
         } catch (ParseException e) {
@@ -122,7 +136,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
         cursor=getContentResolver().query(MyProviderContract.LOCATION_URI,projection,null,null,null);
 
         while (cursor.moveToNext()){
-            Log.d("g53mdp",count+":"+cursor.getString(1)+","+cursor.getString(2)+","+cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE)));
             allLoc[count][0]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
             allLoc[count][1]=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
             allLoc[count][2]=cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
@@ -130,7 +143,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
             count++;
         }
 
-        Log.d("g53mdp","cursor count"+cursor.getCount()+"count:"+count);
 
         calculateDistance();
 
@@ -165,7 +177,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
             long timediff = time2.getTime() - time1.getTime();
             timediff = timediff / 1000;
-            Log.d("g53mdp", i + ":" + distBetweenTwoNodes[0] + "," + "timediff:" + timediff);
 
 
             if (Math.abs(timediff) <= 10) {                                                         //If the record time less than 10 seconds,regarded as the same track.
@@ -183,7 +194,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
      */
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
-        if(requestCode==ACTIVITY_HISTORY_REQUEST_CODE||requestCode==ACTIVITY_TRACKER_REQUEST_CODE){
+        if(requestCode==ACTIVITY_HISTORY_REQUEST_CODE||requestCode==ACTIVITY_TRACKER_REQUEST_CODE||requestCode==ACTIVITY_TODAY_REQUEST_CODE){
             if(resultCode==RESULT_CANCELED){
                 recreate();
                 Log.d("g53mdp","back");

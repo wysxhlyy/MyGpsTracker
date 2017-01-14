@@ -47,7 +47,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".ShowRoute"></activity>
+        <activity android:name=".ShowRoute" />
+        <activity android:name=".TodayInfo"></activity>
     </application>
 
 </manifest>

@@ -21,7 +21,9 @@ public class DBHelper extends SQLiteOpenHelper {
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "longitude VARCHAR(128) NOT NULL," +
                 "latitude VARCHAR(128) NOT NULL," +
-                "time timestamp NOT NULL default CURRENT_TIMESTAMP" +
+                "time timestamp NOT NULL default CURRENT_TIMESTAMP," +
+                "altitude VARCHAR(128) NOT NULL," +
+                "speed VARCHAR(128) NOT NULL" +
                 ");");
     }
 

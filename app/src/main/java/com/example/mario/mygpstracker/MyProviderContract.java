@@ -13,5 +13,7 @@ public class MyProviderContract {
     public static final String LONGITUDE="longitude";
     public static final String LATITUDE="latitude";
     public static final String DATE="time";
+    public static final String ALTITUDE="altitude";
+    public static final String SPEED="speed";
 
 }

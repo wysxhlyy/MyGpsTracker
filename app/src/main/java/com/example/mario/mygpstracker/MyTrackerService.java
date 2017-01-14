@@ -52,7 +52,7 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         super.onCreate();
         binder=new MyBinder();
 
-        savedLoc=new String[2000][3];
+        savedLoc=new String[20000][3];
         saveCount=0;
 
         if (mGoogleApiClient == null) {
@@ -129,6 +129,9 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
             newLocationRecord.put(MyProviderContract.LONGITUDE,savedLoc[i][0]);
             newLocationRecord.put(MyProviderContract.LATITUDE,savedLoc[i][1]);
             newLocationRecord.put(MyProviderContract.DATE,savedLoc[i][2]);
+            newLocationRecord.put(MyProviderContract.ALTITUDE,savedLoc[i][3]);
+            newLocationRecord.put(MyProviderContract.SPEED,savedLoc[i][4]);
+
             getContentResolver().insert(MyProviderContract.LOCATION_URI,newLocationRecord);
         }
     }
@@ -197,6 +200,8 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         savedLoc[saveCount][0]=location.getLongitude()+"";
         savedLoc[saveCount][1]=location.getLatitude()+"";
         savedLoc[saveCount][2]=updateTime;
+        savedLoc[saveCount][3]=location.getAltitude()+"";
+        savedLoc[saveCount][4]=location.getSpeed()+"";
         saveCount++;
     }
 
