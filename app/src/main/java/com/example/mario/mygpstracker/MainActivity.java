@@ -122,7 +122,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
      * @throws ParseException
      */
     private void getInfo() throws ParseException {
-        allLoc=new String[2000][3];
+        allLoc=new String[20000][5];
         todayDistance=0;
         String[] projection=new String[]{
                 MyProviderContract._ID,
@@ -142,10 +142,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
 
             count++;
         }
-
-
         calculateDistance();
-
         process.setText((int)todayDistance+"");
     }
 
@@ -236,6 +233,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.Co
                             }
                             intent.putExtras(bundle);
                             startActivityForResult(intent,ACTIVITY_TRACKER_REQUEST_CODE);
+                            finish();
                         }
                     }
                 });

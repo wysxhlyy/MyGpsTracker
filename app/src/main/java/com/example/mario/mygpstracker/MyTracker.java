@@ -98,7 +98,7 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
 
 
         Bundle bundle=getIntent().getExtras();
-        if(bundle!=null){
+        if(bundle.getString("latitude")!=null){
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(bundle.getString("latitude")),Double.parseDouble(bundle.getString("longitude"))),13.0f));
         }                                                                                           //animate the camera to let user see his position immediately.
 
@@ -149,9 +149,20 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                 break;
             case R.id.save:
                 trackService.saveLocation();                                                        //save the records to database.
-                save.setEnabled(false);
+                stopService();
                 break;
         }
+    }
+
+    public void stopService(){
+        trackService.onStop();
+        unregisterReceiver(batteryReceiver);
+        Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
+
+        Intent result=new Intent(MyTracker.this,MainActivity.class);
+        setResult(Activity.RESULT_CANCELED,result);
+        startActivity(result);
+        finish();
     }
 
     /**
@@ -186,31 +197,17 @@ public class MyTracker extends AppCompatActivity implements GoogleApiClient.Conn
                 }
             });
 
-            builder.setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    trackService.onStop();
-                    unregisterReceiver(batteryReceiver);
-                    Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
-
-                    Intent result=new Intent(MyTracker.this,MainActivity.class);
-                    setResult(Activity.RESULT_CANCELED,result);
-                    startActivity(result);
-                    finish();
+                        stopService();
                 }
             });
 
             AlertDialog dialog=builder.create();
             dialog.show();
         }else {
-            trackService.onStop();
-            unregisterReceiver(batteryReceiver);
-            Toast.makeText(MyTracker.this,"Track Service Stopped",Toast.LENGTH_SHORT).show();
-
-            Intent result=new Intent(MyTracker.this,MainActivity.class);
-            setResult(Activity.RESULT_CANCELED,result);
-            startActivity(result);
-            finish();
+            stopService();
         }
 
     }

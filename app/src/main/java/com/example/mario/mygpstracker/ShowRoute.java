@@ -22,9 +22,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -49,7 +51,8 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
     private String[][] todayLoc;
     private float todayDistance;
     private int count;
-    private PolylineOptions route;
+    private ArrayList<PolylineOptions> routes;
+    private ArrayList<Integer> distances;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,11 +76,16 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
         datePicker = (DatePicker) findViewById(R.id.datePicker);
         chooseDate = (Button) findViewById(R.id.chooseDate);
 
+        getData();
+        routes = new ArrayList<PolylineOptions>(100);
+        distances=new ArrayList<Integer>(100);
+
         chooseDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mMap.clear();                                                                       //When choose a new date,the map should be clear first.
                 count = 0;
+                routes.clear();
                 todayLoc = null;
                 int month = datePicker.getMonth() + 1;                                                  //get the day,month and year information, set them as "int" to avoid the judge problem like "01-01-2017"!="1-1-2017".
                 int day = datePicker.getDayOfMonth();
@@ -86,7 +94,6 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
             }
         });
 
-        getData();                                                                                  //Get data from database.
 
     }
 
@@ -125,8 +132,8 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
      * @param year
      */
     protected void drawRoute(int day, int month, int year) {
-        route = new PolylineOptions();
-        todayLoc = new String[20000][3];                                                               //todayLoc stores all the location information of that day.
+        todayLoc = new String[20000][5];                                                               //todayLoc stores all the location information of that day.
+        cursor.moveToFirst();
 
         while (cursor.moveToNext()) {
             String getDateData = cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE));
@@ -137,7 +144,6 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
 
             if (day == dayInDatabase && month == monthInDatabase && year == yearInDatabase) {
                 formatData();
-                route.add(new LatLng(dlat, dlong));
                 historyExist = true;
                 todayLoc[count][0] = cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
                 todayLoc[count][1] = cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
@@ -149,11 +155,8 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
 
         if (historyExist) {
             calculateDistance();
-            changeColor();
-            mMap.addPolyline(route);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(dlat, dlong), 12.0f));
             historyExist = false;
-            Toast.makeText(ShowRoute.this, "Your move " + (int) todayDistance + " meters in that day", Toast.LENGTH_LONG).show();
+            Toast.makeText(ShowRoute.this, "You move " + (int) todayDistance + " meters in that day", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(ShowRoute.this, "Cannot Find Any Record", Toast.LENGTH_SHORT).show();
         }
@@ -161,18 +164,37 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
 
 
     /**
-     * Change the color of displayed route according to the moving distance to indicate
-     * that user had experienced a easy day or tough day.
+     * Change the color of displayed route according to the moving distance of a specific track.
      */
     public void changeColor() {
-        route.width(15);
-        if (todayDistance > 5000) {
-            route.color(Color.RED);
-        } else if (todayDistance < 1000) {
-            route.color(Color.GREEN);
-        } else {
-            route.color(Color.BLUE);
+        int color=0;
+        for(int i=0;i<routes.size();i++){
+            routes.get(i).width(15);
+            switch (i%10){
+                case 0:color=Color.BLACK;
+                    break;
+                case 1:color=Color.BLUE;
+                    break;
+                case 2:color=Color.RED;
+                    break;
+                case 3:color=Color.GRAY;
+                    break;
+                case 4:color=Color.GREEN;
+                    break;
+                case 5:color=Color.YELLOW;
+                    break;
+                case 6:color=Color.MAGENTA;
+                    break;
+                case 7:color=Color.TRANSPARENT;
+                    break;
+                case 8:color=Color.LTGRAY;
+                    break;
+                case 9:color=Color.CYAN;
+                    break;
+            }
+            routes.get(i).color(color);
         }
+
     }
 
 
@@ -180,9 +202,13 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
      * Calculate the distance according to the latitude and longitude.
      * Two locations will be set as the same single track if the difference of their record time is within 10 seconds.
      * The same single track means the two locations share the same start point and end point.
+     * Part of drawing route code is included in this part too.
      */
     public void calculateDistance() {
+        PolylineOptions route=new PolylineOptions();
         todayDistance = 0;
+        int dist=0;
+
 
         for (int i = 0; i < count - 1; i++) {
             double long1 = Double.parseDouble(todayLoc[i][0]);
@@ -206,11 +232,29 @@ public class ShowRoute extends AppCompatActivity implements GoogleApiClient.Conn
             long timediff = time2.getTime() - time1.getTime();
             timediff = timediff / 1000;
 
-
             if (Math.abs(timediff) <= 10) {                                                         //If the difference of record time less than 10 seconds,regarded as the same track.
                 todayDistance += distBetweenTwoNodes[0];
+                dist+=distBetweenTwoNodes[0];
+                route.add(new LatLng(lat1, long1));
+            }else {
+                routes.add(route);
+                distances.add(dist);
+                //mMap.addPolyline(route);
+                route=new PolylineOptions();
+                dist=0;
+            }
+            if(i==count-2){
+                routes.add(route);
+                distances.add(dist);
             }
         }
+
+        Log.d("size",routes.size()+"");
+        changeColor();
+        for(int i=0;i<routes.size();i++){
+            mMap.addPolyline(routes.get(i));
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(dlat, dlong), 12.0f));
     }
 
     /**

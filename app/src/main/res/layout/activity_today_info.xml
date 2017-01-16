@@ -32,9 +32,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Walking distance:"
+            android:text="Moving distance:"
             android:textSize="25dp"
-            android:textStyle="bold"
             android:textColor="@color/black"
             />
 
@@ -43,44 +42,20 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:textSize="30dp"
+            android:fontFamily="cursive"
+            android:layout_marginLeft="5dp"
             android:textColor="@color/red"
-            android:id="@+id/wailDistance"
+            android:id="@+id/moveDistance"
             />
 
     </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="40dp"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Moving distance with vehicle"
-            android:textSize="25dp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:textSize="30dp"
-            android:textColor="@color/red"
-            android:id="@+id/vehicleDistance"
-            />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="25dp"
         >
 
         <TextView
@@ -88,7 +63,6 @@
             android:layout_height="wrap_content"
             android:text="The altitude drop experienced:"
             android:textSize="25dp"
-            android:textStyle="bold"
             android:textColor="@color/black"
             />
 
@@ -97,6 +71,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:textColor="@color/red"
+            android:layout_marginLeft="5dp"
+            android:fontFamily="cursive"
             android:textSize="30dp"
             android:id="@+id/altitude"
             />
@@ -107,7 +83,36 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="25dp"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="The number of times you track:"
+            android:textSize="25dp"
+            android:textColor="@color/black"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/red"
+            android:textSize="30dp"
+            android:layout_marginLeft="5dp"
+            android:id="@+id/trackTime"
+            android:fontFamily="cursive"
+            />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="25dp"
         >
 
         <TextView
@@ -115,7 +120,6 @@
             android:layout_height="wrap_content"
             android:text="Fastest Moving Speed:"
             android:textSize="25dp"
-            android:textStyle="bold"
             android:textColor="@color/black"
             />
 
@@ -124,11 +128,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:textSize="30dp"
+            android:fontFamily="cursive"
+            android:layout_marginLeft="5dp"
             android:textColor="@color/red"
             android:id="@+id/speed"
             />
 
     </LinearLayout>
+
+
 
 
     <Button

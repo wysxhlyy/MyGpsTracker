@@ -1,8 +1,6 @@
 package com.example.mario.mygpstracker;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
+
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -12,7 +10,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,6 +29,9 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
     public MyTrackerService() {
 
     }
+
+    public static final int ID = 1;
+
     private GoogleApiClient mGoogleApiClient;
     private IBinder binder;
     private boolean trackOrNot;
@@ -52,7 +52,7 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         super.onCreate();
         binder=new MyBinder();
 
-        savedLoc=new String[20000][3];
+        savedLoc=new String[20000][5];
         saveCount=0;
 
         if (mGoogleApiClient == null) {
@@ -64,7 +64,6 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
         }
         createLocReq();
         onStart();
-        notification();
     }
 
 
@@ -134,26 +133,6 @@ public class MyTrackerService extends Service implements GoogleApiClient.Connect
 
             getContentResolver().insert(MyProviderContract.LOCATION_URI,newLocationRecord);
         }
-    }
-
-    /**
-     * Create the notification.
-     */
-    public void notification(){
-        Intent notificationIntent=new Intent(this,MyTracker.class);
-        PendingIntent pi=PendingIntent.getActivity(this,0,notificationIntent,0);
-
-        Notification notification=new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark_disabled)
-                .setContentTitle("Activity Tracker")
-                .setContentTitle("Tracking..")
-                .setContentIntent(pi)
-                .setAutoCancel(false)
-                .setDefaults(Notification.DEFAULT_SOUND)
-                .build();
-
-        NotificationManager nManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        nManager.notify(0,notification);
     }
 
 

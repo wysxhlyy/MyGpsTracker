@@ -45,6 +45,9 @@ public class TrackHistory extends AppCompatActivity {
     private Button show;
     private String dlat5;
     private String dlong5;
+    private String dalt5;
+    private String dspeed5;
+
     private String filePath;
     private File newFile;
 
@@ -98,7 +101,9 @@ public class TrackHistory extends AppCompatActivity {
                 MyProviderContract._ID,
                 MyProviderContract.LONGITUDE,
                 MyProviderContract.LATITUDE,
-                MyProviderContract.DATE
+                MyProviderContract.DATE,
+                MyProviderContract.ALTITUDE,
+                MyProviderContract.SPEED
         };
 
         columnsToDisplay=new String[]{
@@ -176,10 +181,18 @@ public class TrackHistory extends AppCompatActivity {
     protected void formatData(){
         String latitude=cursor.getString(cursor.getColumnIndex(MyProviderContract.LATITUDE));
         String longitude=cursor.getString(cursor.getColumnIndex(MyProviderContract.LONGITUDE));
+        String altitude=cursor.getString(cursor.getColumnIndex(MyProviderContract.ALTITUDE));
+        String speed=cursor.getString(cursor.getColumnIndex(MyProviderContract.SPEED));
         Double dlat=Double.parseDouble(latitude);
         dlat5=new Formatter().format("%.5f",dlat).toString();
         Double dlong=Double.parseDouble(longitude);
         dlong5=new Formatter().format("%.5f",dlong).toString();
+        Double dalt=Double.parseDouble(altitude);
+        Double dspeed=Double.parseDouble(speed);
+        dalt5=new Formatter().format("%.5f",dalt).toString();
+        dspeed5=new Formatter().format("%.5f",dspeed).toString();
+
+
     }
 
 
@@ -197,12 +210,12 @@ public class TrackHistory extends AppCompatActivity {
         Writer writer=new FileWriter(newFile);
         CSVWriter csvWriter= new CSVWriter(writer,',');
 
-        csvWriter.writeNext(new String[]{"Latitude","Longitude","Time"});
+        csvWriter.writeNext(new String[]{"Latitude","Longitude","Time","Altitude","Speed"});
 
         cursor.moveToFirst();
         while (cursor.moveToNext()){
             formatData();
-            csvWriter.writeNext(new String[]{dlat5,dlong5,cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE))});
+            csvWriter.writeNext(new String[]{dlat5,dlong5,cursor.getString(cursor.getColumnIndex(MyProviderContract.DATE)),dalt5,dspeed5});
         }
         csvWriter.close();
     }
